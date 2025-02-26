@@ -31,8 +31,7 @@ public class ActeurRepositoryTest {
 	 */
 	@Test
 	public void testExtraireActeursTriesParIdentite() {
-
-		TypedQuery<Acteur> query = em.createQuery("SELECT a FROM Acteur a", Acteur.class);
+		TypedQuery<Acteur> query = em.createQuery("SELECT a FROM Acteur a ORDER BY a.identite", Acteur.class);
 		List<Acteur> acteurs = query.getResultList();
 
 		assertEquals(1137, acteurs.size());
@@ -44,7 +43,8 @@ public class ActeurRepositoryTest {
 	 */
 	@Test
 	public void testExtraireActeursParIdentite() {
-		TypedQuery<Acteur> query = em.createQuery("SELECT a FROM Acteur a", Acteur.class);
+		TypedQuery<Acteur> query = em.createQuery("SELECT a FROM Acteur a WHERE a.identite = :identite", Acteur.class);
+		query.setParameter("identite", "Marion Cotillard");
 		List<Acteur> acteurs = query.getResultList();
 
 		assertEquals(1, acteurs.size());
@@ -57,7 +57,8 @@ public class ActeurRepositoryTest {
 	 */
 	@Test
 	public void testExtraireActeursParAnneeNaissance() {
-		TypedQuery<Acteur> query = em.createQuery("SELECT a FROM Acteur a", Acteur.class);
+		TypedQuery<Acteur> query = em.createQuery("SELECT a FROM Acteur a WHERE FUNCTION('YEAR', a.anniversaire) = :annee", Acteur.class);
+		query.setParameter("annee", 1985);
 		List<Acteur> acteurs = query.getResultList();
 
 		assertEquals(10, acteurs.size());
@@ -69,7 +70,8 @@ public class ActeurRepositoryTest {
 	@Test
 	public void testExtraireActeursParRole() {
 
-		TypedQuery<Acteur> query = em.createQuery("SELECT a FROM Acteur a", Acteur.class);
+		TypedQuery<Acteur> query = em.createQuery("SELECT a FROM Acteur a JOIN a.roles r WHERE r.nom = :role", Acteur.class);
+		query.setParameter("role", "Harley Quinn");
 		List<Acteur> acteurs = query.getResultList();
 
 		assertEquals(1, acteurs.size());
@@ -81,7 +83,8 @@ public class ActeurRepositoryTest {
 	 */
 	@Test
 	public void testExtraireActeursParFilmParuAnnee() {
-		TypedQuery<Acteur> query = em.createQuery("SELECT a FROM Acteur a", Acteur.class);
+		TypedQuery<Acteur> query = em.createQuery("SELECT DISTINCT a FROM Acteur a JOIN a.roles r JOIN r.film f WHERE f.annee = :annee", Acteur.class);
+		query.setParameter("annee", 2015);
 		List<Acteur> acteurs = query.getResultList();
 		assertEquals(119, acteurs.size());
 	}
@@ -91,7 +94,8 @@ public class ActeurRepositoryTest {
 	 */
 	@Test
 	public void testExtraireActeursParPays() {
-		TypedQuery<Acteur> query = em.createQuery("SELECT a FROM Acteur a", Acteur.class);
+		TypedQuery<Acteur> query = em.createQuery("SELECT DISTINCT a FROM Acteur a JOIN a.roles r JOIN r.film f JOIN f.pays p WHERE p.nom = :pays", Acteur.class);
+		query.setParameter("pays", "France");
 		List<Acteur> acteurs = query.getResultList();
 		assertEquals(158, acteurs.size());
 	}
@@ -102,8 +106,11 @@ public class ActeurRepositoryTest {
 	 */
 	@Test
 	public void testExtraireActeursParListePaysEtAnnee() {
-		TypedQuery<Acteur> query = em.createQuery("SELECT a FROM Acteur a", Acteur.class);
+		TypedQuery<Acteur> query = em.createQuery("SELECT DISTINCT a FROM Acteur a JOIN a.roles r JOIN r.film f JOIN f.pays p WHERE f.annee = :annee AND p.nom = :pays", Acteur.class);
+		query.setParameter("annee", 2017);
+		query.setParameter("pays", "France");
 		List<Acteur> acteurs = query.getResultList();
+
 		assertEquals(24, acteurs.size());
 	}
 
@@ -113,7 +120,10 @@ public class ActeurRepositoryTest {
 	 */
 	@Test
 	public void testExtraireParRealisateurEntreAnnee() {
-		TypedQuery<Acteur> query = em.createQuery("SELECT a FROM Acteur a", Acteur.class);
+		TypedQuery<Acteur> query = em.createQuery("SELECT DISTINCT a FROM Acteur a JOIN a.roles r JOIN r.film f JOIN f.realisateurs rs WHERE rs.identite = :realisateur AND f.annee BETWEEN :debut AND :fin", Acteur.class);
+		query.setParameter("realisateur", "Ridley Scott");
+		query.setParameter("debut", 2010);
+		query.setParameter("fin", 2020);
 		List<Acteur> acteurs = query.getResultList();
 		assertEquals(27, acteurs.size());
 	}
@@ -123,7 +133,8 @@ public class ActeurRepositoryTest {
 	 */
 	@Test
 	public void testExtraireRealisateursParActeur() {
-		TypedQuery<Realisateur> query = em.createQuery("SELECT r FROM Realisateur r", Realisateur.class);
+		TypedQuery<Realisateur> query = em.createQuery("SELECT DISTINCT r FROM Realisateur r JOIN r.films f JOIN f.roles ro JOIN ro.acteur a WHERE a.identite = :acteur", Realisateur.class);
+		query.setParameter("acteur", "Brad Pitt");
 		List<Realisateur> acteurs = query.getResultList();
 		assertEquals(6, acteurs.size());
 	}
